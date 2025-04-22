@@ -84,8 +84,9 @@
     <main>
         <textarea id="inputText" rows="4" placeholder="Введите текст..."></textarea><br>
         <select id="translationType">
-            <option value="standard">Стандартный перевод</option>
-            <option value="full">Полный перевод</option>
+            <option value="ru-to-da-standard">Русский → Даэдрический (Стандартный)</option>
+            <option value="ru-to-da-full">Русский → Даэдрический (Полный)</option>
+            <option value="da-to-ru">Даэдрический → Русский</option>
         </select>
         <button id="translateButton">Перевести</button>
         <h2>Результат:</h2>
@@ -100,6 +101,14 @@
             'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts',
             'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '',
             'э': 'e', 'ю': 'yu', 'я': 'ya'
+        };
+
+        const daedricToEnglishMap = {
+            'ай': 'a', 'бе': 'b', 'се': 'c', 'до': 'd', 'эк': 'e', 'хеф': 'f',
+            'ге': 'g', 'хек': 'h', 'ия': 'i', 'дже': 'j', 'ко': 'k', 'ли': 'l',
+            'ме': 'm', 'не': 'n', 'ох': 'o', 'пай': 'p', 'квам': 'q', 'ро': 'r',
+            'се': 's', 'тай': 't', 'юд': 'u', 'вех': 'v', 'веб': 'w', 'ксаэ': 'x',
+            'як': 'y', 'зи': 'z'
         };
 
         const daedricMapStandard = {
@@ -127,22 +136,52 @@
                 return;
             }
 
-            // Перевод с русского на английский
-            let englishText = input.split('').map(char => {
-                return russianToEnglishMap[char] || char;
-            }).join('');
+            let translatedText = '';
 
-            // Выбор карты перевода
-            const daedricMap = translationType === 'full' ? daedricMapFull : daedricMapStandard;
-
-            // Перевод с английского на даэдрический
-            let daedricText = englishText.split(' ').flatMap(word => {
-                return word.split('').map(char => {
-                    return daedricMap[char] || char;
+            if (translationType === 'ru-to-da-standard') {
+                // Перевод с русского на английский
+                let englishText = input.split('').map(char => {
+                    return russianToEnglishMap[char] || char;
                 }).join('');
-            }).join(' ');
 
-            document.getElementById("outputText").innerText = daedricText;
+                // Перевод с английского на даэдрический (стандартный)
+                translatedText = englishText.split(' ').flatMap(word => {
+                    return word.split('').map(char => {
+                        return daedricMapStandard[char] || char;
+                    }).join('');
+                }).join(' ');
+
+            } else if (translationType === 'ru-to-da-full') {
+                // Перевод с русского на английский
+                let englishText = input.split('').map(char => {
+                    return russianToEnglishMap[char] || char;
+                }).join('');
+
+                // Перевод с английского на даэдрический (полный)
+                translatedText = englishText.split(' ').flatMap(word => {
+                    return word.split('').map(char => {
+                        return daedricMapFull[char] || char;
+                    }).join('');
+                }).join(' ');
+
+            } else if (translationType === 'da-to-ru') {
+                // Перевод с даэдрического на английский
+                let englishText = input.split(' ').flatMap(word => {
+                    return word.match(/.{1,2}/g).map(char => {
+                        return daedricToEnglishMap[char] || char;
+                    }).join('');
+                }).join(' ');
+
+                // Перевод с английского на русский
+                translatedText = englishText.split('').map(char => {
+                    for (const [ru, en] of Object.entries(russianToEnglishMap)) {
+                        if (en === char) return ru;
+                    }
+                    return char;
+                }).join('');
+            }
+
+            document.getElementById("outputText").innerText = translatedText;
         };
     </script>
 </body>
