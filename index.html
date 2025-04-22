@@ -87,6 +87,7 @@
             <option value="ru-to-da-standard">Русский → Даэдрический (Стандартный)</option>
             <option value="ru-to-da-full">Русский → Даэдрический (Полный)</option>
             <option value="da-to-ru">Даэдрический → Русский</option>
+            <option value="da-full-to-ru">Полный Даэдрический → Русский</option>
         </select>
         <button id="translateButton">Перевести</button>
         <h2>Результат:</h2>
@@ -108,7 +109,15 @@
             'ге': 'g', 'хек': 'h', 'ия': 'i', 'дже': 'j', 'ко': 'k', 'ли': 'l',
             'ме': 'm', 'не': 'n', 'ох': 'o', 'пай': 'p', 'квам': 'q', 'ро': 'r',
             'сех': 's', 'тай': 't', 'юд': 'u', 'вех': 'v', 'веб': 'w', 'ксаэ': 'x',
-            'як': 'y', 'зи': 'z'
+            'як': 'y', 'зи': 'z', 'с.ехх.ек': 'sh', 'с.ехх.екс.ех.ек': 'shch', 'з.их.ек': 'zh','я.ка.й':'ya'
+        };
+
+        const fullDaedricToEnglishMap = {
+            'айем': 'a', 'бедт': 'b', 'сесс': 'c', 'дохт': 'd', 'экем': 'e', 'хефед': 'f',
+            'гет': 'g', 'хекем': 'h', 'ия': 'i', 'джеб': 'j', 'кохт': 'k', 'лир': 'l',
+            'мехт': 'm', 'нехт': 'n', 'охт': 'o', 'пайем': 'p', 'квам': 'q', 'рохт': 'r',
+            'сехт': 's', 'тайем': 't', 'юдт': 'u', 'вехк': 'v', 'веб': 'w', 'ксаэ': 'x',
+            'якем': 'y', 'зир': 'z', 'с.ехтх.екем': 'sh', 'с.ехтх.екемс.ессх.екем': 'shch', 'з.ирх.екем': 'zh'
         };
 
         const daedricMapStandard = {
@@ -116,7 +125,7 @@
             'g': 'ге', 'h': 'хек', 'i': 'ия', 'j': 'дже', 'k': 'ко', 'l': 'ли',
             'm': 'ме', 'n': 'не', 'o': 'ох', 'p': 'пай', 'q': 'квам', 'r': 'ро',
             's': 'сех', 't': 'тай', 'u': 'юд', 'v': 'вех', 'w': 'веб', 'x': 'ксаэ',
-            'y': 'як', 'z': 'зи'
+            'y': 'як', 'z': 'зи', 'sh': 'с.ехх.ек', 'shch': 'с.ехх.екс.ех.ек', 'zh': 'з.их.ек','ya':'я.ка.й'
         };
 
         const daedricMapFull = {
@@ -124,8 +133,22 @@
             'g': 'гет', 'h': 'хекем', 'i': 'ия', 'j': 'джеб', 'k': 'кохт', 'l': 'лир',
             'm': 'мехт', 'n': 'нехт', 'o': 'охт', 'p': 'пайем', 'q': 'квам', 'r': 'рохт',
             's': 'сехт', 't': 'тайем', 'u': 'юдт', 'v': 'вехк', 'w': 'веб', 'x': 'ксаэ',
-            'y': 'якем', 'z': 'зир'
+            'y': 'якем', 'z': 'зир', 'sh': 'с.ехтх.екем', 'shch': 'с.ехтх.екемс.ессх.екем', 'zh': 'з.ирх.екем'
         };
+
+        function replaceSequentialMatches(text) {
+            const replacements = {
+                'с.ехх.ек': 'ш',
+                'с.ехх.екс.ех.ек': 'щ',
+                'з.их.ек': 'ж',
+                'я.ка.й': 'я',
+                'с.ехтх.екем': 'ш',
+                'с.ехтх.екемс.ессх.екем': 'щ',
+                'з.ирх.екем': 'ж',
+            };
+            const regex = new RegExp(Object.keys(replacements).join('|'), 'g');
+            return text.replace(regex, matched => replacements[matched]);
+        }
 
         document.getElementById("translateButton").onclick = function() {
             const input = document.getElementById("inputText").value.trim();
@@ -171,6 +194,28 @@
                         return daedricToEnglishMap[char] || char;
                     }).join('');
                 }).join(' ');
+
+                // Замена последовательных совпадений на русские буквы
+                englishText = replaceSequentialMatches(englishText);
+
+                // Перевод с английского на русский
+                translatedText = englishText.split('').map(char => {
+                    for (const [ru, en] of Object.entries(russianToEnglishMap)) {
+                        if (en === char) return ru;
+                    }
+                    return char;
+                }).join('');
+
+            } else if (translationType === 'da-full-to-ru') {
+                // Перевод с полного даэдрического на английский
+                let englishText = input.split(' ').flatMap(word => {
+                    return word.match(/.{1,4}/g).map(char => {
+                        return fullDaedricToEnglishMap[char] || char;
+                    }).join('');
+                }).join(' ');
+
+                // Замена последовательных совпадений на русские буквы
+                englishText = replaceSequentialMatches(englishText);
 
                 // Перевод с английского на русский
                 translatedText = englishText.split('').map(char => {
