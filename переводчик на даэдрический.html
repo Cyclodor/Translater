@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Переводчик на даэдрический язык</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #4e4e4e;
+            color: #fff;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            border-bottom: 2px solid #ffcc00;
+        }
+        main {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            margin: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #3a3a3a;
+            color: #fff;
+        }
+        button {
+            background-color: #ffcc00;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #e6b800;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        #outputText {
+            border: 1px solid #555;
+            padding: 10px;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            min-height: 50px;
+            color: #ffcc00;
+        }
+        select {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #3a3a3a;
+            color: #fff;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Переводчик на даэдрический язык</h1>
+    </header>
+    <main>
+        <textarea id="inputText" rows="4" placeholder="Введите текст..."></textarea><br>
+        <select id="translationType">
+            <option value="standard">Стандартный перевод</option>
+            <option value="full">Полный перевод</option>
+        </select>
+        <button id="translateButton">Перевести</button>
+        <h2>Результат:</h2>
+        <p id="outputText"></p>
+    </main>
+
+    <script>
+        const russianToEnglishMap = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e',
+            'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k',
+            'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+            'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts',
+            'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '',
+            'э': 'e', 'ю': 'yu', 'я': 'ya'
+        };
+
+        const daedricMapStandard = {
+            'a': 'ай', 'b': 'бе', 'c': 'се', 'd': 'до', 'e': 'эк', 'f': 'хеф',
+            'g': 'ге', 'h': 'хек', 'i': 'ия', 'j': 'дже', 'k': 'ко', 'l': 'ли',
+            'm': 'ме', 'n': 'не', 'o': 'ох', 'p': 'пай', 'q': 'квам', 'r': 'ро',
+            's': 'се', 't': 'тай', 'u': 'юд', 'v': 'вех', 'w': 'веб', 'x': 'ксаэ',
+            'y': 'як', 'z': 'зи'
+        };
+
+        const daedricMapFull = {
+            'a': 'айем', 'b': 'бедт', 'c': 'сесс', 'd': 'дохт', 'e': 'экем', 'f': 'хефед',
+            'g': 'гет', 'h': 'хекем', 'i': 'ия', 'j': 'джеб', 'k': 'кохт', 'l': 'лир',
+            'm': 'мехт', 'n': 'нехт', 'o': 'охт', 'p': 'пайем', 'q': 'квам', 'r': 'рохт',
+            's': 'сехт', 't': 'тайем', 'u': 'юдт', 'v': 'вехк', 'w': 'веб', 'x': 'ксаэ',
+            'y': 'якем', 'z': 'зир'
+        };
+
+        document.getElementById("translateButton").onclick = function() {
+            const input = document.getElementById("inputText").value.trim();
+            const translationType = document.getElementById("translationType").value;
+
+            if (!input) {
+                document.getElementById("outputText").innerText = "Пожалуйста, введите текст для перевода.";
+                return;
+            }
+
+            // Перевод с русского на английский
+            let englishText = input.split('').map(char => {
+                return russianToEnglishMap[char] || char;
+            }).join('');
+
+            // Выбор карты перевода
+            const daedricMap = translationType === 'full' ? daedricMapFull : daedricMapStandard;
+
+            // Перевод с английского на даэдрический
+            let daedricText = englishText.split(' ').flatMap(word => {
+                return word.split('').map(char => {
+                    return daedricMap[char] || char;
+                }).join('');
+            }).join(' ');
+
+            document.getElementById("outputText").innerText = daedricText;
+        };
+    </script>
+</body>
+</html>
